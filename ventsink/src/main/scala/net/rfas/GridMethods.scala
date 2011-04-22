@@ -10,4 +10,9 @@ object GridMethods {
     def grid = new GridList(l)
   }
 
+  //TODO Send the result back to ventsink
+  //TODO Try multiple workers
+  //TODO Properly comment out the code
+  //TODO Try running workers on different machines
+
 }
