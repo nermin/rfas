@@ -6,9 +6,9 @@ import java.io.{ByteArrayOutputStream, ObjectOutputStream}
 class GridList[+A](seqList: List[A]) {
   def map[B](f: (A) => B): List[B] = {
     val signature = getSignature(f)
-    val context: ZMQ.Context = ZMQ.context(3)
+    val context = ZMQ.context(3)
     val sender = context.socket(ZMQ.PUSH)
-    sender.bind("tcp://*:" + System.getProperty("push.bind"))
+    sender.bind("tcp://*:" + System.getProperty("request.bind")) //TODO define constant
 
 
     seqList.foreach (
@@ -17,9 +17,9 @@ class GridList[+A](seqList: List[A]) {
         val oos = new ObjectOutputStream(baos)
 
         try {
-          oos.writeObject(f)
-          oos.writeObject(signature)
           oos.writeObject(elem)
+          oos.writeObject(signature)
+          oos.writeObject(f)
         } catch {
           case e: Exception => e.printStackTrace //TODO handle this better
         } finally {
