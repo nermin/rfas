@@ -5,16 +5,11 @@ import java.io.{ByteArrayInputStream, ObjectInputStream, ByteArrayOutputStream, 
 import collection.mutable.ListBuffer
 import java.util.concurrent.{Executors, Callable, FutureTask}
 
-class GridList[+A](seqList: List[A]) {
+class GridList[+A](seqList: List[A], sender: ZMQ.Socket, receiver: ZMQ.Socket) {
+
+
   def map[B](f: (A) => B): List[B] = {
     val signature = getSignature(f)
-    val context = ZMQ.context(3)
-    val sender = context.socket(ZMQ.PUSH)
-    sender.bind("tcp://*:" + System.getProperty("request.bind")) //TODO define constant
-
-    val receiver = context.socket(ZMQ.PULL)
-    receiver.bind("tcp://*:" + System.getProperty("response.bind"))
-
     val executor = Executors.newFixedThreadPool(1)
 
     val result = new FutureTask[List[B]](

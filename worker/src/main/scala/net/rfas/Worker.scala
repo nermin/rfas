@@ -10,10 +10,10 @@ object Worker {
     val context = ZMQ.context(3)
     val receiver = context.socket(ZMQ.PULL)
     //TODO will binding to localhost work in a grid?
-    receiver.connect("tcp://localhost:" + System.getProperty("request.bind"))
+    receiver.connect("tcp://127.0.0.1:" + System.getProperty("request.bind"))
 
     val sender = context.socket(ZMQ.PUSH)
-    sender.connect("tcp://localhost:" + System.getProperty("response.bind"))
+    sender.connect("tcp://127.0.0.1:" + System.getProperty("response.bind"))
 
     while (true) {
       val ois = new ObjectInputStream(new ByteArrayInputStream(receiver.recv(0)))
@@ -30,8 +30,7 @@ object Worker {
           case 1 => Some(receivedF.asInstanceOf[{def apply[T,R](v1: T):R}].apply(elem))
           case _ => None
         }
-        println("RESULT: " + result.get)
-        println("CLASS: " + result.get.getClass)
+        println("worker calculated: " + result.get)
 
         oos.writeObject(result.get)
 
