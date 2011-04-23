@@ -1,7 +1,9 @@
 package net.rfas.collection
 
 import org.zeromq.ZMQ
-import java.io.{ByteArrayOutputStream, ObjectOutputStream}
+import java.io.{ByteArrayInputStream, ObjectInputStream, ByteArrayOutputStream, ObjectOutputStream}
+import collection.mutable.ListBuffer
+import java.util.concurrent.{Executors, Callable, FutureTask}
 
 class GridList[+A](seqList: List[A]) {
   def map[B](f: (A) => B): List[B] = {
@@ -10,6 +12,31 @@ class GridList[+A](seqList: List[A]) {
     val sender = context.socket(ZMQ.PUSH)
     sender.bind("tcp://*:" + System.getProperty("request.bind")) //TODO define constant
 
+    val receiver = context.socket(ZMQ.PULL)
+    receiver.bind("tcp://*:" + System.getProperty("response.bind"))
+
+    val executor = Executors.newFixedThreadPool(1)
+
+    val result = new FutureTask[List[B]](
+      new Callable[List[B]]() {
+        def call: List[B] = {
+          val resultsCollected = new ListBuffer[B]
+          while (resultsCollected.size < seqList.size) {
+            val ois = new ObjectInputStream(new ByteArrayInputStream(receiver.recv(0)))
+            try {
+              resultsCollected += ois.readObject.asInstanceOf[B]
+            } catch {
+              case e: Exception => e.printStackTrace //TODO handle better
+            } finally {
+              ois.close
+            }
+          }
+          resultsCollected.result
+        }
+      }
+    )
+
+    executor.execute(result)
 
     seqList.foreach (
       elem => {
@@ -28,13 +55,9 @@ class GridList[+A](seqList: List[A]) {
 
         sender.send(baos.toByteArray, 0)
       }
-
-
-
     )
 
-
-    seqList.map(f)
+    result.get
   }
 
   private def getSignature[T](f: T)(implicit m: ClassManifest[T]) = m.toString

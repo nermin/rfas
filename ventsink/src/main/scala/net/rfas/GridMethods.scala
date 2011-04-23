@@ -11,8 +11,15 @@ object GridMethods {
   }
 
   //TODO Send the result back to ventsink
+  //TODO Error Handling
+  //TODO Handle node failures
   //TODO Try multiple workers
   //TODO Properly comment out the code
   //TODO Try running workers on different machines
   //TODO Refactor the code to eliminate redundant lines
+  //TODO Use Executor Service to multi-thread the worker
+  //TODO Documentation:
+  //          0. ZeroMQ must be installed on both sides
+  //          1. The client app must have ventsink jar on the classpath
+  //          2. Worker must have client jar on the classpath (due to lack of remote class-loading)
 }

@@ -1,8 +1,8 @@
 package net.rfas
 
 import org.zeromq.ZMQ
-import java.io.{ByteArrayInputStream, ObjectInputStream}
-;
+import java.io.{ObjectOutputStream, ByteArrayOutputStream, ByteArrayInputStream, ObjectInputStream}
+
 object Worker {
   def main(args: Array[String]): Unit = {
     val PATTERN = """\d+""".r
@@ -17,6 +17,8 @@ object Worker {
 
     while (true) {
       val ois = new ObjectInputStream(new ByteArrayInputStream(receiver.recv(0)))
+      val baos = new ByteArrayOutputStream
+      val oos = new ObjectOutputStream(baos)
 
       try {
         val elem = ois.readObject
@@ -24,16 +26,23 @@ object Worker {
         val fTypeIndex = PATTERN.findFirstIn(signature).get.toInt
         val receivedF = ois.readObject
         val result: Option[AnyRef] = fTypeIndex match {
+          // for now only handling application of functions with 1 parameter
           case 1 => Some(receivedF.asInstanceOf[{def apply[T,R](v1: T):R}].apply(elem))
           case _ => None
         }
         println("RESULT: " + result.get)
         println("CLASS: " + result.get.getClass)
+
+        oos.writeObject(result.get)
+
       } catch {
         case e: Exception => e.printStackTrace //TODO handle this better
       } finally {
         ois.close
+        oos.close
       }
+
+      sender.send(baos.toByteArray, 0)
     }
   }
 }
