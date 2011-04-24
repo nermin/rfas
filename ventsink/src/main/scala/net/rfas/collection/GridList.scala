@@ -12,7 +12,6 @@ class GridList[+A](seqList: List[A]) {
     val sUUID = UUID.randomUUID
 
     GridCoreOps.noop
-    println("!@##$$%%^^&&")
     seqList.foreach (
       elem => {
         val baos = new ByteArrayOutputStream

@@ -15,7 +15,6 @@ object GridCoreOps {
   sender.bind("tcp://*:" + System.getProperty("request.bind")) //TODO define constant
   receiver.bind("tcp://*:" + System.getProperty("response.bind"))
   listen
-  println("12323432453656")
   Thread.sleep(100) // allow workers to connect to ventilator
   // primary constructor end
 
