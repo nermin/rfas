@@ -12,14 +12,14 @@ class GridList[+A](seqList: List[A]) {
     val sUUID = UUID.randomUUID
 
     GridCoreOps.noop
-    seqList.foreach (
-      elem => {
+    for (i <- 0 until seqList.size) {
         val baos = new ByteArrayOutputStream
         val oos = new ObjectOutputStream(baos)
 
         try {
           oos.writeObject(sUUID)
-          oos.writeObject(elem)
+          oos.writeInt(i)
+          oos.writeObject(seqList(i))
           oos.writeObject(signature)
           oos.writeObject(f)
         } catch {
@@ -30,15 +30,14 @@ class GridList[+A](seqList: List[A]) {
 
         GridCoreOps.send(sUUID, baos.toByteArray)
       }
-    )
 
-    val results = new ListBuffer[B]
+    val results = new ListBuffer[(Int, B)]
     while (results.size < seqList.size) {
-      results += GridCoreOps.receive(sUUID).asInstanceOf[B]
+      results += GridCoreOps.receive(sUUID).asInstanceOf[(Int, B)]
     }
     GridCoreOps.done(sUUID)
 
-    results.result
+    results.result.sortBy(_._1).map(_._2)
   }
 
   private def getSignature[T](f: T)(implicit m: ClassManifest[T]) = m.toString

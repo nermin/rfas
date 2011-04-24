@@ -6,7 +6,7 @@ import java.util.concurrent.{Executors, LinkedBlockingQueue, ConcurrentHashMap, 
 import java.io.{ByteArrayInputStream, ObjectInputStream}
 ;
 object GridCoreOps {
-  private val gridOps = new ConcurrentHashMap[UUID, BlockingQueue[AnyRef]]
+  private val gridOps = new ConcurrentHashMap[UUID, BlockingQueue[(Int, AnyRef)]]
   private val context = ZMQ.context(3)
   private val sender = context.socket(ZMQ.PUSH)
   private val receiver = context.socket(ZMQ.PULL)
@@ -21,7 +21,7 @@ object GridCoreOps {
   def noop = {} // just so object gets constructed eagerly
 
   def send(uuid: UUID, payload: Array[Byte]) = {
-    gridOps.putIfAbsent(uuid, new LinkedBlockingQueue[AnyRef])
+    gridOps.putIfAbsent(uuid, new LinkedBlockingQueue[(Int, AnyRef)])
 
     synchronized {
       /*
@@ -49,7 +49,7 @@ object GridCoreOps {
           val ois = new ObjectInputStream(new ByteArrayInputStream(receiver.recv(0)))
           try {
             val uuid = ois.readObject.asInstanceOf[UUID]
-            gridOps.get(uuid).put(ois.readObject)
+            gridOps.get(uuid).put((ois.readInt, ois.readObject))
           } catch {
             case e: Exception => e.printStackTrace //TODO handle better
           } finally {

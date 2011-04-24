@@ -22,6 +22,7 @@ object Worker {
 
       try {
         val uuid = ois.readObject
+        val index = ois.readInt
         val elem = ois.readObject
         val signature = ois.readObject.asInstanceOf[String]
         val fTypeIndex = PATTERN.findFirstIn(signature).get.toInt
@@ -34,6 +35,7 @@ object Worker {
         println("worker calculated: " + result.get)
 
         oos.writeObject(uuid)
+        oos.writeInt(index)
         oos.writeObject(result.get)
 
       } catch {
