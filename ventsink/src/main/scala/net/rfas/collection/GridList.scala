@@ -1,44 +1,25 @@
 package net.rfas.collection
 
-import org.zeromq.ZMQ
-import java.io.{ByteArrayInputStream, ObjectInputStream, ByteArrayOutputStream, ObjectOutputStream}
+import java.io.{ByteArrayOutputStream, ObjectOutputStream}
 import collection.mutable.ListBuffer
-import java.util.concurrent.{Executors, Callable, FutureTask}
+import java.util.UUID
+import net.rfas.GridCoreOps
 
-class GridList[+A](seqList: List[A], sender: ZMQ.Socket, receiver: ZMQ.Socket) {
-
-
+class GridList[+A](seqList: List[A]) {
   def map[B](f: (A) => B): List[B] = {
     val signature = getSignature(f)
-    val executor = Executors.newFixedThreadPool(1)
+    // to uniquely identify this grid collection
+    val sUUID = UUID.randomUUID
 
-    val result = new FutureTask[List[B]](
-      new Callable[List[B]]() {
-        def call: List[B] = {
-          val resultsCollected = new ListBuffer[B]
-          while (resultsCollected.size < seqList.size) {
-            val ois = new ObjectInputStream(new ByteArrayInputStream(receiver.recv(0)))
-            try {
-              resultsCollected += ois.readObject.asInstanceOf[B]
-            } catch {
-              case e: Exception => e.printStackTrace //TODO handle better
-            } finally {
-              ois.close
-            }
-          }
-          resultsCollected.result
-        }
-      }
-    )
-
-    executor.execute(result)
-
+    GridCoreOps.noop
+    println("!@##$$%%^^&&")
     seqList.foreach (
       elem => {
         val baos = new ByteArrayOutputStream
         val oos = new ObjectOutputStream(baos)
 
         try {
+          oos.writeObject(sUUID)
           oos.writeObject(elem)
           oos.writeObject(signature)
           oos.writeObject(f)
@@ -48,22 +29,18 @@ class GridList[+A](seqList: List[A], sender: ZMQ.Socket, receiver: ZMQ.Socket) {
           oos.close
         }
 
-        sender.send(baos.toByteArray, 0)
+        GridCoreOps.send(sUUID, baos.toByteArray)
       }
     )
 
-    result.get
+    val results = new ListBuffer[B]
+    while (results.size < seqList.size) {
+      results += GridCoreOps.receive(sUUID).asInstanceOf[B]
+    }
+    GridCoreOps.done(sUUID)
+
+    results.result
   }
 
   private def getSignature[T](f: T)(implicit m: ClassManifest[T]) = m.toString
-
-/*
-  private def withObjectOutputStream(oos: ObjectOutputStream)(op: ObjectOutputStream => Unit) {
-    try {
-      op(oos)
-    } finally {
-      oos.close
-    }
-  }
-  */
 }
