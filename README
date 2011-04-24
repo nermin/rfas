@@ -1,1 +1,10 @@
-This file was created by IntelliJ IDEA 10.0.3 for binding GitHub repository
+Setup
+-----
+* 0MQ must be installed on all nodes (client and worker)
+* LD_LIBRARY_PATH must be defined and point to 0MQ libraries directory (ex.: /usr/local/lib)
+* All worker nodes must have client JAR file in the classpath (due to lack ot remote class loading)
+
+Roadmap
+-------
+1. Remote class loading on the worker side
+2. Potentially replace synchronization/concurrent hashmap/blocking queue with Actors
