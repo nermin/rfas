@@ -10,6 +10,7 @@ object GridMethods {
     def grid = new GridList(l)
   }
 
+  //TODO proper ordering of results withing collection
   //TODO Error Handling
   //TODO Handle node failures
   //TODO Properly comment out the code
