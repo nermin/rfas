@@ -10,40 +10,15 @@ class GridList[+A](seqList: List[A]) {
   GridCoreOps.noop
 
   def map[B](f: (A) => B): List[B] = {
-    val signature = getSignature(f)
-    // to uniquely identify this grid collection
-    val sUUID = UUID.randomUUID
-
-    for (i <- 0 until seqList.size) {
-        val baos = new ByteArrayOutputStream
-        val oos = new ObjectOutputStream(baos)
-
-        try {
-          oos.writeObject(sUUID)
-          oos.writeInt(i)
-          oos.writeObject(seqList(i))
-          oos.writeObject(signature)
-          oos.writeObject(f)
-        } catch {
-          case e: Exception => e.printStackTrace //TODO handle this better
-        } finally {
-          oos.close
-        }
-
-        GridCoreOps.send(sUUID, baos.toByteArray)
-      }
-
-    val results = new ListBuffer[(Int, B)]
-    while (results.size < seqList.size) {
-      results += GridCoreOps.receive(sUUID).asInstanceOf[(Int, B)]
-    }
-    GridCoreOps.done(sUUID)
-
-    results.result.sortBy(_._1).map(_._2)
+    remotelyApply(f).map(_._2)
   }
 
   def filter(p: (A) => Boolean): List[A] = {
-    val signature = getSignature(p)
+    for (result <- remotelyApply(p) if result._2) yield seqList(result._1)
+  }
+
+  private def remotelyApply[T](f: (A) => T): List[(Int, T)] = {
+    val signature = getSignature(f)
     val sUUID = UUID.randomUUID
 
     for (i <- 0 until seqList.size) {
@@ -55,7 +30,7 @@ class GridList[+A](seqList: List[A]) {
         oos.writeInt(i)
         oos.writeObject(seqList(i))
         oos.writeObject(signature)
-        oos.writeObject(p)
+        oos.writeObject(f)
       } catch {
           case e: Exception => e.printStackTrace //TODO handle this better
       } finally {
@@ -65,13 +40,13 @@ class GridList[+A](seqList: List[A]) {
       GridCoreOps.send(sUUID, baos.toByteArray)
     }
 
-    val results = new ListBuffer[(Int, Boolean)]
+    val results = new ListBuffer[(Int, T)]
     while (results.size < seqList.size) {
-      results += GridCoreOps.receive(sUUID).asInstanceOf[(Int, Boolean)]
+      results += GridCoreOps.receive(sUUID).asInstanceOf[(Int, T)]
     }
     GridCoreOps.done(sUUID)
 
-    for (result <- results.result.sortBy(_._1) if result._2) yield seqList(result._1)
+    results.result.sortBy(_._1)
   }
 
   private def getSignature[T](f: T)(implicit m: ClassManifest[T]) = m.toString
