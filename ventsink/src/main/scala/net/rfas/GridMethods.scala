@@ -16,6 +16,5 @@ object GridMethods {
   //TODO Try running workers on different machines
   //TODO Refactor the code to eliminate redundant lines
   //TODO Use Executor Service to multi-thread the worker
-  //TODO Implement more methods beyond map
 
 }
