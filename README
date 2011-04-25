@@ -9,3 +9,4 @@ Roadmap
 1. Remote class loading on the worker side
 2. Potentially replace synchronization/concurrent hashmap/blocking queue with Actors
 3. Define a common project on which ventsink and worker shall depend
+4. Incorporate some kind of logging (ex. SLF4S, Configgy, etc...)

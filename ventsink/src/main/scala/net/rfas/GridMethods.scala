@@ -10,7 +10,7 @@ object GridMethods {
     def grid = new GridList(l)
   }
 
-  //TODO Error Handling
+  //TODO Error Handling / check return codes
   //TODO Handle node failures / fault-tolerance
   //TODO Properly comment out the code
   //TODO Try running workers on different machines
