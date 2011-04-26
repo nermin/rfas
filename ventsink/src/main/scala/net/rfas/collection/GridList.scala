@@ -22,27 +22,22 @@ class GridList[+A](seqList: List[A]) {
     val sUUID = UUID.randomUUID
 
     for (i <- 0 until seqList.size) {
-      val baos = new ByteArrayOutputStream
-      val oos = new ObjectOutputStream(baos)
-
-      try {
-        oos.writeObject(sUUID)
-        oos.writeInt(i)
-        oos.writeObject(seqList(i))
-        oos.writeObject(signature)
-        oos.writeObject(f)
-      } catch {
-          case e: Exception => e.printStackTrace //TODO handle this better
-      } finally {
-        oos.close
-      }
-
-      GridCoreOps.send(sUUID, baos.toByteArray)
+      sendElem(sUUID, i, signature, f)
     }
 
     val results = new ListBuffer[(Int, T)]
     while (results.size < seqList.size) {
-      results += GridCoreOps.receive(sUUID).asInstanceOf[(Int, T)]
+      val result = GridCoreOps.receive(sUUID)
+      if (result == null) {
+        // timeout occurred, resend
+        resendMissing(sUUID, signature, f, results.result.map(_._1))
+      } else {
+        val received = result.asInstanceOf[(Int, T)]
+        // received result can be a duplicate, which means there was a resend
+        if (!results.contains(received)) {
+          results += received
+        }
+      }
     }
     GridCoreOps.done(sUUID)
 
@@ -50,4 +45,31 @@ class GridList[+A](seqList: List[A]) {
   }
 
   private def getSignature[T](f: T)(implicit m: ClassManifest[T]) = m.toString
+
+  private def sendElem[T](uuid: UUID, index: Int, signature: String, f: (A) => T) = {
+    val baos = new ByteArrayOutputStream
+    val oos = new ObjectOutputStream(baos)
+
+    try {
+      oos.writeObject(uuid)
+      oos.writeInt(index)
+      oos.writeObject(seqList(index))
+      oos.writeObject(signature)
+      oos.writeObject(f)
+    } catch {
+      case e: Exception => e.printStackTrace //TODO handle this better
+    } finally {
+      oos.close
+    }
+
+      GridCoreOps.send(uuid, baos.toByteArray)
+  }
+
+  private def resendMissing[T](uuid: UUID, signature: String, f: (A) => T, processed: List[Int]) = {
+    val missing = for (i <- 0 until seqList.size if !processed.contains(i)) yield i
+    println("Resending: " + missing)
+    for (missed <- missing) {
+      sendElem(uuid, missed, signature, f)
+    }
+  }
 }

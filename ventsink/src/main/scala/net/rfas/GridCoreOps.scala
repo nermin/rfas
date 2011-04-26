@@ -2,14 +2,15 @@ package net.rfas
 
 import java.util.UUID
 import org.zeromq.ZMQ
-import java.util.concurrent.{Executors, LinkedBlockingQueue, ConcurrentHashMap, BlockingQueue}
 import java.io.{ByteArrayInputStream, ObjectInputStream}
+import java.util.concurrent._
 ;
 object GridCoreOps {
   private val gridOps = new ConcurrentHashMap[UUID, BlockingQueue[(Int, AnyRef)]]
   private val context = ZMQ.context(3)
   private val sender = context.socket(ZMQ.PUSH)
   private val receiver = context.socket(ZMQ.PULL)
+  private val timeout = System.getProperty("worker.timeout.millis").toLong
 
   // primary constructor begin
   sender.bind("tcp://*:" + System.getProperty("request.bind")) //TODO define constant
@@ -34,7 +35,7 @@ object GridCoreOps {
   }
 
   def receive(uuid: UUID) = {
-    gridOps.get(uuid).take
+    gridOps.get(uuid).poll(timeout, TimeUnit.MILLISECONDS)
   }
 
   def done(uuid: UUID) = {
@@ -49,7 +50,14 @@ object GridCoreOps {
           val ois = new ObjectInputStream(new ByteArrayInputStream(receiver.recv(0)))
           try {
             val uuid = ois.readObject.asInstanceOf[UUID]
-            gridOps.get(uuid).put((ois.readInt, ois.readObject))
+            val queue = gridOps.get(uuid)
+            /*
+                      *  if queue is null, it has already been removed, which means this result has already been received
+                      *  so just discard it
+                      */
+            if (queue != null) {
+              queue.put((ois.readInt, ois.readObject))
+            }
           } catch {
             case e: Exception => e.printStackTrace //TODO handle better
           } finally {

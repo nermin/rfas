@@ -3,6 +3,7 @@ import sbt._
 class ZeroMQ(info: ProjectInfo) extends DefaultProject(info) {
   System.setProperty("request.bind", "5557")
   System.setProperty("response.bind", "5558")
+  System.setProperty("worker.timeout.millis", "1000")
   // On Linux, this also needs to be specified in LD_LIBRARY_PATH:
   System.setProperty("java.library.path", "/usr/local/lib")
 
