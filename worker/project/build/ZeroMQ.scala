@@ -6,6 +6,7 @@ class ZeroMQ(info: ProjectInfo) extends DefaultProject(info) {
   System.setProperty("response.bind", "5558")
   // On Linux, this also needs to be specified in LD_LIBRARY_PATH:
   System.setProperty("java.library.path", "/usr/local/lib")
+  System.setProperty("worker.threads", "2")
 
 
   val zmqLib = new File("/usr/local/share/java/zmq.jar")

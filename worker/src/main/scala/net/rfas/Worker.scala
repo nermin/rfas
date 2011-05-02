@@ -8,7 +8,8 @@ object Worker {
   val context = ZMQ.context(3)
   val receiver = context.socket(ZMQ.PULL)
   val sender = context.socket(ZMQ.PUSH)
-  val executor = Executors.newFixedThreadPool(100) //TODO create a constant
+  val executor = Executors.newFixedThreadPool(System.getProperty("worker.threads").toInt)
+
 
   // primary constructor begin
   //TODO will binding to localhost work in a grid?
@@ -21,7 +22,7 @@ object Worker {
 
     while (true) {
       val payload = receiver.recv(0)
-
+      println("worker received message")
       val functionApplication = new Runnable {
         def run = {
           val ois = new ObjectInputStream(new ByteArrayInputStream(payload))
@@ -35,12 +36,13 @@ object Worker {
             val signature = ois.readObject.asInstanceOf[String]
             val fTypeIndex = PATTERN.findFirstIn(signature).get.toInt
             val receivedF = ois.readObject
+            println("worker starting to apply to: " + elem)
             val result: Option[AnyRef] = fTypeIndex match {
               // for now only handling application of functions with 1 parameter
               case 1 => Some(receivedF.asInstanceOf[{def apply[T,R](v1: T):R}].apply(elem))
               case _ => None
             }
-            println("worker calculated: " + result.get)
+            println("result of worker application: " + result.get)
 
             oos.writeObject(uuid)
             oos.writeInt(index)
