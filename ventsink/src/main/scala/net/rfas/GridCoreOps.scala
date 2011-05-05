@@ -7,10 +7,12 @@ import java.util.concurrent._
 ;
 object GridCoreOps {
   private val gridOps = new ConcurrentHashMap[UUID, BlockingQueue[(Int, AnyRef)]]
+  private val executor = Executors.newSingleThreadExecutor
   private val context = ZMQ.context(3)
   private val sender = context.socket(ZMQ.PUSH)
   private val receiver = context.socket(ZMQ.PULL)
   private val timeout = System.getProperty("worker.timeout.millis").toLong
+  @volatile private var keepListening = true
 
   // primary constructor begin
   sender.bind("tcp://*:" + System.getProperty("request.bind")) //TODO define constant
@@ -40,13 +42,15 @@ object GridCoreOps {
 
   def done(uuid: UUID) = {
     gridOps.remove(uuid)
+    keepListening = false
+    executor.shutdown
   }
 
   private def listen = {
-    val executor = Executors.newSingleThreadExecutor
+
     val listener = new Runnable {
       def run = {
-        while(true)  {
+        while(keepListening)  {
           val ois = new ObjectInputStream(new ByteArrayInputStream(receiver.recv(0)))
           try {
             val uuid = ois.readObject.asInstanceOf[UUID]
