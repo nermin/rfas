@@ -1,7 +1,7 @@
 import java.io.File
 import sbt._
 
-class ZeroMQ(info: ProjectInfo) extends DefaultProject(info) {
+class ZeroMQ(info: ProjectInfo) extends DefaultProject(info) with assembly.AssemblyBuilder {
   System.setProperty("request.bind", "5557")
   System.setProperty("response.bind", "5558")
   // On Linux, this also needs to be specified in LD_LIBRARY_PATH:
