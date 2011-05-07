@@ -12,8 +12,8 @@ object Worker {
 
   // primary constructor begin
   //TODO will binding to localhost work in a grid?
-  receiver.connect("tcp://127.0.0.1:" + System.getProperty("request.bind"))
-  sender.connect("tcp://127.0.0.1:" + System.getProperty("response.bind"))
+  receiver.connect("tcp://" + System.getProperty("bind.address") +":" + System.getProperty("request.bind"))
+  sender.connect("tcp://" + System.getProperty("bind.address") + ":" + System.getProperty("response.bind"))
   // primary constructor end
 
   def main(args: Array[String]): Unit = {

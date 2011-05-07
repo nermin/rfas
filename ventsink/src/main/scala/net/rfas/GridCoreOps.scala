@@ -18,7 +18,7 @@ object GridCoreOps {
   sender.bind("tcp://*:" + System.getProperty("request.bind")) //TODO define constant
   receiver.bind("tcp://*:" + System.getProperty("response.bind"))
   listen
-  Thread.sleep(100) // allow workers to connect to ventilator
+  Thread.sleep(250) // allow workers to connect to ventilator
   // primary constructor end
 
   def noop = {} // just so object gets constructed eagerly
