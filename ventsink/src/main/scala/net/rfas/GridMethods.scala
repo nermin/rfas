@@ -9,10 +9,4 @@ object GridMethods {
   class GridListMethod[A](l: List[A]) {
     def grid = new GridList(l)
   }
-
-  //TODO Error Handling / check return codes
-  //TODO Handle node failures / fault-tolerance
-  //TODO Properly comment out the code
-  //TODO Try running workers on different machines
-  //TODO Refactor the code to eliminate redundant lines
 }
