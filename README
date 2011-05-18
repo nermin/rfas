@@ -1,12 +1,26 @@
+RFAS stands for Remote Function Application Server
+
+It contains two modules:
+1. ventsink - library which allows for certain collections (ex. List) its operations (ex. map, filter)
+              to be executed in a distributed fashion, across a compute grid.
+              As a result, computationally intensive tasks could be ran in parallel, utilizing
+              multiple computing resources.
+              It's an extension to Scala's collection library and preserves the same Collections API.
+
+2. worker   - server which applies functions. It's a multithreaded application which accepts requests
+              containing a function and a parameter, then applies the function to the parameter and
+              finally sends the result of the function application back.
+
 Setup
 -----
 * 0MQ must be installed on all nodes (client and worker)
 * LD_LIBRARY_PATH must be defined and point to 0MQ libraries directory (ex.: /usr/local/lib)
 * All worker nodes must have client JAR file in the classpath (due to lack ot remote class loading)
 
-Roadmap
--------
+Desired Improvements
+--------------------
 1. Remote class loading on the worker side
 2. Potentially replace synchronization/concurrent hashmap/blocking queue with Actors
 3. Define a common project on which ventsink and worker shall depend
 4. Incorporate some kind of logging (ex. SLF4S, Configgy, etc...)
+5. Make worker automatically determine the optimal number of threads to be allocated in the pool.

@@ -4,7 +4,7 @@ import java.util.UUID
 import org.zeromq.ZMQ
 import java.io.{ByteArrayInputStream, ObjectInputStream}
 import java.util.concurrent._
-;
+
 object GridCoreOps {
   private val gridOps = new ConcurrentHashMap[UUID, BlockingQueue[(Int, AnyRef)]]
   private val executor = Executors.newSingleThreadExecutor
@@ -42,6 +42,9 @@ object GridCoreOps {
 
   def done(uuid: UUID) = {
     gridOps.remove(uuid)
+  }
+
+  def stop = {
     keepListening = false
     executor.shutdown
   }
