@@ -59,8 +59,8 @@ object GridCoreOps {
             val uuid = ois.readObject.asInstanceOf[UUID]
             val queue = gridOps.get(uuid)
             /*
-                      *  if queue is null, it has already been removed, which means this result has already been received
-                      *  so just discard it
+                        if queue is null, it has already been removed, which means this result has already been received
+                        so just discard it
                       */
             if (queue != null) {
               queue.put((ois.readInt, ois.readObject))
