@@ -7,7 +7,7 @@ import net.rfas.GridCoreOps
 
 class GridList[+A](seqList: List[A]) {
 
-  GridCoreOps.noop
+  GridCoreOps.init
 
   def map[B](f: (A) => B): List[B] = {
     remotelyApply(f).map(_._2)
@@ -21,6 +21,7 @@ class GridList[+A](seqList: List[A]) {
     val signature = getSignature(f)
     val sUUID = UUID.randomUUID
 
+    GridCoreOps.ready(sUUID)
     for (i <- 0 until seqList.size) {
       sendElem(sUUID, i, signature, f)
     }
@@ -62,7 +63,7 @@ class GridList[+A](seqList: List[A]) {
       oos.close
     }
 
-      GridCoreOps.send(uuid, baos.toByteArray)
+      GridCoreOps.send(baos.toByteArray)
   }
 
   private def resendMissing[T](uuid: UUID, signature: String, f: (A) => T, processed: List[Int]) = {
