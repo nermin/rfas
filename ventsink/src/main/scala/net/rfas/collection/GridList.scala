@@ -14,8 +14,12 @@ class GridList[+A](seqList: List[A]) {
   }
 
   def filter(p: (A) => Boolean): List[A] = {
-    for (result <- remotelyApply(p) if result._2) yield seqList(result._1)
+    remotelyApply(p).filter(_._2).map(e => seqList(e._1))
   }
+
+//  def flatMap[B](f: (A) => Traversable[B]): List[B] = {
+//
+//  }
 
   private def remotelyApply[T](f: (A) => T): List[(Int, T)] = {
     val signature = getSignature(f)

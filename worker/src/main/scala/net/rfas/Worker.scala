@@ -11,7 +11,6 @@ object Worker {
   val executor = new BoundedExecutor(System.getProperty("worker.threads").toInt)
 
   // primary constructor begin
-  //TODO will binding to localhost work in a grid?
   receiver.connect("tcp://" + System.getProperty("bind.address") +":" + System.getProperty("request.bind"))
   sender.connect("tcp://" + System.getProperty("bind.address") + ":" + System.getProperty("response.bind"))
   // primary constructor end
