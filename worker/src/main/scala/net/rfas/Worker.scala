@@ -2,22 +2,39 @@ package net.rfas
 
 import org.zeromq.ZMQ
 import java.io.{ObjectOutputStream, ByteArrayOutputStream, ByteArrayInputStream, ObjectInputStream}
-import java.util.concurrent.Executors
+import actors.scheduler.DaemonScheduler
+import scala.actors._
 
 object Worker {
-  val context = ZMQ.context(3)
-  val receiver = context.socket(ZMQ.PULL)
-  val sender = context.socket(ZMQ.PUSH)
-  val executor = new BoundedExecutor(System.getProperty("worker.threads").toInt)
+  private val context = ZMQ.context(3)
+  private val receiver = context.socket(ZMQ.PULL)
+  private val executor = new BoundedExecutor(System.getProperty("worker.threads").toInt)
+  private case class Send(payload: Array[Byte])
 
-  // primary constructor begin
   receiver.connect("tcp://" + System.getProperty("bind.address") +":" + System.getProperty("request.bind"))
-  sender.connect("tcp://" + System.getProperty("bind.address") + ":" + System.getProperty("response.bind"))
-  // primary constructor end
+
+  /*
+      ZeroMQ sockets are not thread-safe. Although this will make things slower - sequential,,
+      sending a result of a function over wire should take much less time then applying it.
+      (This assumes function application is computationally/IO intensive)
+    */
+  private object Sender extends Actor {
+    private val senderSocket = context.socket(ZMQ.PUSH)
+    override def scheduler = DaemonScheduler
+
+    def act = {
+      senderSocket.connect("tcp://" + System.getProperty("bind.address") + ":" + System.getProperty("response.bind"))
+      while (true) {
+        receive {
+          case Send(payload) => senderSocket.send(payload, 0)
+        }
+      }
+    }
+  }
 
   def main(args: Array[String]): Unit = {
     val PATTERN = """\d+""".r
-
+    Sender.start
     println("waiting for something to work on")
 
     while (true) {
@@ -47,9 +64,6 @@ object Worker {
             oos.writeObject(uuid)
             oos.writeInt(index)
             oos.writeObject(result.get)
-
-          } catch {
-            case e: Exception => e.printStackTrace //TODO handle this better
           } finally {
             ois.close
             oos.close
@@ -62,14 +76,5 @@ object Worker {
     }
   }
 
-  def send(payload: Array[Byte]) = {
-    synchronized {
-      /*
-            ZeroMQ sockets are not thread-safe. Although this will make things slower,
-            sending a function over wire should take much less time then applying it.
-            (This assumes function application is computationally/IO intensive)
-          */
-      sender.send(payload, 0)
-    }
-  }
+  def send(payload: Array[Byte]) = Sender ! Send(payload)
 }

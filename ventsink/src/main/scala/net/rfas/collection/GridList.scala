@@ -61,8 +61,6 @@ class GridList[+A](seqList: List[A]) {
       oos.writeObject(seqList(index))
       oos.writeObject(signature)
       oos.writeObject(f)
-    } catch {
-      case e: Exception => e.printStackTrace //TODO handle this better
     } finally {
       oos.close
     }

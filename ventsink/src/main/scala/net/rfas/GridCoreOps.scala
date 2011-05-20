@@ -16,7 +16,7 @@ object GridCoreOps {
   private case class Send(payload: Array[Byte])
 
   /*
-      ZeroMQ sockets are not thread-safe. Although this will make things slower,
+      ZeroMQ sockets are not thread-safe. Although this will make things slower - sequential,,
       sending a function over wire should take much less time then applying it.
       (This assumes function application is computationally/IO intensive)
     */
@@ -25,7 +25,7 @@ object GridCoreOps {
     override def scheduler = DaemonScheduler
 
     def act = {
-      senderSocket.bind("tcp://*:" + System.getProperty("request.bind")) //TODO define constant
+      senderSocket.bind("tcp://*:" + System.getProperty("request.bind"))
       while (true) {
         receive {
           case Send(payload) => senderSocket.send(payload, 0)
@@ -51,8 +51,6 @@ object GridCoreOps {
           if (queue != null) {
             queue.put((ois.readInt, ois.readObject))
           }
-        } catch {
-          case e: Exception => e.printStackTrace //TODO handle better
         } finally {
           ois.close
         }
