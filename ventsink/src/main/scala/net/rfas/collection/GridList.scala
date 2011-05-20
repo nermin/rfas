@@ -17,9 +17,9 @@ class GridList[+A](seqList: List[A]) {
     remotelyApply(p).filter(_._2).map(e => seqList(e._1))
   }
 
-//  def flatMap[B](f: (A) => Traversable[B]): List[B] = {
-//
-//  }
+  def flatMap[B](f: (A) => Traversable[B]): List[B] = {
+    map(f).flatten
+  }
 
   private def remotelyApply[T](f: (A) => T): List[(Int, T)] = {
     val signature = getSignature(f)
