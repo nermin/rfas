@@ -62,7 +62,7 @@ object GridCoreOps {
     Sender.start
     Receiver.setDaemon(true)
     Receiver.start
-    Thread.sleep(250) // allow workers to connect to ventilator
+    Thread.sleep(250) // allow workers enough time to connect to ventilator
   }
 
   def send(payload: Array[Byte]) = Sender ! Send(payload)
