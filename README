@@ -9,20 +9,57 @@ RFAS contains two modules:
               from ventsink containing a function and a parameter, then applies the function to the
               parameter and finally sends the result of the function application back to ventsink.
 
-Setup
------
-* 0MQ must be installed on all nodes (client and worker)
-* LD_LIBRARY_PATH must be defined and point to 0MQ libraries directory (ex.: /usr/local/lib)
-* All worker nodes must have client JAR file in the classpath (due to lack of remote class loading)
+Prerequisites
+-------------
+1. RFAS uses ZeroMQ to exchange messages between nodes. Therefore, ZeroMQ must be installed on all nodes
+   (client and workers).
+2. LD_LIBRARY_PATH must be defined and point to 0MQ libraries directory (ex.: /usr/local/lib).
+3. Java Runtime must be installed on all nodes.
+4. All worker nodes must have client JAR file in the classpath (due to lack of remote class loading).
+
+Quick Setup (Linux)
+-------------------
+1. Install ZeroMQ:
+   a) sudo apt-get install libtool autoconf automake
+   b) sudo apt-get install uuid-dev g++
+   c) download and unpack the latest zeromq distribution (currently 2.1.6):
+      wget http://download.zeromq.org/zeromq-2.1.6.tar.gz
+      gunzip zeromq-2.1.6.tar.gz
+      tar xvf zeromq-2.1.6.tar
+   d) ./configure
+   e) make
+   f) sudo make install
+   g) sudo ldconfig (just ignore the error it throws)
+
+2. Install Java bindings for ZeroMQ:
+   a) set JAVA_HOME env variable to point to JDK installation. For example:
+      export JAVA_HOME=/usr/lib/jvm/java-6-sun
+   b) download the source of the java binding from github:
+      wget --no-check-certificate  https://github.com/zeromq/jzmq/zipball/master
+   c) ./autogen.sh
+   d) ./configure
+   e) make
+   f) make install
+
+Running
+-------
+There are two parts to run: client node and worker nodes. Thanks to ZeroMQ, it does not matter which
+part we start first. Nevertheless, to ensure equal distribution of work, starting all workers first
+and then the master node is the recommended approach.
+
+Worker start script expects one parameter to be specified: bind address. This is the host name of
+the master node. Obviously, if running on a single computer, it should be specified as localhost.
+Example:
+        ./run.sh localhost
 
 Current Limitations
 -------------------
-1. Only single parameter functions can be remotely applied
-2. Parameters and functions must be *fully* serializable to be remotely applied
+1. Only single parameter functions can be remotely applied.
+2. Parameters and functions must be *fully* serializable to be remotely applied.
 
 Desired Improvements
 --------------------
-1. Remote class loading on the worker side
-2. Define a common project on which ventsink and worker shall depend (apparently this is possible in SBT)
-3. Write some unit tests
-4. Incorporate some kind of logging (ex. SLF4S, Configgy, etc...)
+1. Remote class loading on the worker side.
+2. Define a common project on which ventsink and worker shall depend (apparently this is possible in SBT).
+3. Write some unit tests.
+4. Incorporate some kind of logging (ex. SLF4S, Configgy, etc...).
