@@ -26,4 +26,3 @@ Desired Improvements
 2. Define a common project on which ventsink and worker shall depend (apparently this is possible in SBT)
 3. Write some unit tests
 4. Incorporate some kind of logging (ex. SLF4S, Configgy, etc...)
-5. Make worker automatically determine the optimal number of threads to be allocated in the pool.

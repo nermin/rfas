@@ -8,7 +8,6 @@ class ZeroMQ(info: ProjectInfo) extends DefaultProject(info) with assembly.Assem
   System.setProperty("response.bind", "5558")
   // On Linux, this also needs to be specified in LD_LIBRARY_PATH:
   System.setProperty("java.library.path", "/usr/local/lib")
-  System.setProperty("worker.threads", "2")
   System.setProperty("bind.address", "127.0.0.1")
 
 

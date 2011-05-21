@@ -8,7 +8,8 @@ import scala.actors._
 object Worker {
   private val context = ZMQ.context(3)
   private val receiver = context.socket(ZMQ.PULL)
-  private val executor = new BoundedExecutor(System.getProperty("worker.threads").toInt)
+  private val numberOfCores = Runtime.getRuntime.availableProcessors()
+  private val executor = new BoundedExecutor(numberOfCores)
   private case class Send(payload: Array[Byte])
 
   receiver.connect("tcp://" + System.getProperty("bind.address") +":" + System.getProperty("request.bind"))
@@ -35,7 +36,7 @@ object Worker {
   def main(args: Array[String]): Unit = {
     val PATTERN = """\d+""".r
     Sender.start
-    println("waiting for something to work on")
+    println(numberOfCores + " threads waiting for something to work on")
 
     while (true) {
       val payload = receiver.recv(0)
