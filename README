@@ -1,6 +1,6 @@
 RFAS contains two modules:
-1. ventsink - library which allows for certain collections (ex. List) its operations (ex. map, filter, flatMap)
-              to be executed in a distributed fashion, across a compute grid.
+1. ventsink - library which allows for certain Scala collections (ex. List) its operations
+              (ex. map, filter, flatMap) to be executed in a distributed fashion, across a compute grid.
               As a result, computationally intensive tasks could be ran in parallel, utilizing
               multiple computing resources.
               It's an extension to Scala's collection library and preserves the same Collections API.
