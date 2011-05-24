@@ -15,6 +15,11 @@ object GridCoreOps {
 
   private case class Send(payload: Array[Byte])
 
+  Sender.start
+  Receiver.setDaemon(true)
+  Receiver.start
+  Thread.sleep(250) // allow workers enough time to connect to ventilator
+
   /*
       ZeroMQ sockets are not thread-safe. Although this will make things slower - sequential,,
       sending a function over wire should take much less time then applying it.
@@ -59,10 +64,7 @@ object GridCoreOps {
   }
 
   def init = {
-    Sender.start
-    Receiver.setDaemon(true)
-    Receiver.start
-    Thread.sleep(250) // allow workers enough time to connect to ventilator
+    // no-op, just to ensure constructor gets called eagerly
   }
 
   def send(payload: Array[Byte]) = Sender ! Send(payload)
